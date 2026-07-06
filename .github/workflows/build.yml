@@ -56,6 +56,21 @@ jobs:
             --inject inject.js \
             --targets deb,appimage
 
+      - name: Download appimagetool
+        run: |
+          wget -O appimagetool-x86_64.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Patch AppImage runtime
+        shell: bash
+        run: |
+          chmod +x scripts/patch-appimage-runtime.sh
+          APPIMAGE_PATH="$(find . -type f -name "*.AppImage" ! -path "*/node_modules/*" ! -path "*/target/*" | head -n 1)"
+          scripts/patch-appimage-runtime.sh "$APPIMAGE_PATH" gatherdesktop-patched.AppImage
+          mv gatherdesktop-patched.AppImage "$APPIMAGE_PATH"
+        env:
+          APPIMAGETOOL: ./appimagetool-x86_64.AppImage
+
       - name: Organize artifacts
         shell: bash
         run: |

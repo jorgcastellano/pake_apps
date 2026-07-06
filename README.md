@@ -28,6 +28,8 @@ GitHub Actions construye el AppImage en `ubuntu-22.04`, con un stack mas estable
 Ubuntu 22.04 + Pake CLI + Tauri bundler + linuxdeploy
 ```
 
+Despues de compilar, el workflow post-procesa el AppImage para envolver su `AppRun` interno con mitigaciones de WebKitGTK. No tienes que pasar variables manualmente al ejecutar el AppImage.
+
 ## Workflow De GitHub Actions
 
 El workflow ya esta en:
