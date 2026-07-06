@@ -1,11 +1,10 @@
 /**
- * Gather Desktop Custom Injection Script
- * Optimized for Gather Town (https://app.v2.gather.town/app)
+ * Generic Web App Desktop Injection Script
  * Adds desktop-native keyboard shortcuts without forcing WebRTC initialization.
  */
 
 (function () {
-  console.log("Gather Desktop: Injecting helper scripts...");
+  console.log("Web App Desktop: Injecting helper scripts...");
 
   // 1. Keyboard Shortcuts (Reload, Zoom, and Navigation)
   window.addEventListener('keydown', (e) => {
@@ -50,5 +49,5 @@
     document.body.style.height = '100%';
   }
 
-  console.log("Gather Desktop: Injection completed successfully.");
+  console.log("Web App Desktop: Injection completed successfully.");
 })();

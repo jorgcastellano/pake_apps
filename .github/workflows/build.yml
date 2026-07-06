@@ -1,4 +1,4 @@
-name: Build Gather Desktop Linux
+name: Build Web App Desktop Linux
 
 on:
   push:
@@ -8,6 +8,31 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      app_url:
+        description: "URL web a empaquetar"
+        required: true
+        default: "https://web.whatsapp.com/"
+      package_name:
+        description: "Nombre tecnico sin espacios"
+        required: true
+        default: "WhatsAppDesktop"
+      width:
+        description: "Ancho inicial de ventana"
+        required: true
+        default: "1280"
+      height:
+        description: "Alto inicial de ventana"
+        required: true
+        default: "800"
+      targets:
+        description: "Targets Pake"
+        required: true
+        default: "deb,appimage"
+      user_agent:
+        description: "User-Agent opcional"
+        required: false
+        default: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 permissions:
   contents: write
@@ -16,6 +41,13 @@ jobs:
   build-linux:
     name: Build AppImage and DEB
     runs-on: ubuntu-22.04
+    env:
+      APP_URL: ${{ github.event.inputs.app_url || 'https://web.whatsapp.com/' }}
+      PACKAGE_NAME: ${{ github.event.inputs.package_name || 'WhatsAppDesktop' }}
+      WINDOW_WIDTH: ${{ github.event.inputs.width || '1280' }}
+      WINDOW_HEIGHT: ${{ github.event.inputs.height || '800' }}
+      TARGETS: ${{ github.event.inputs.targets || 'deb,appimage' }}
+      USER_AGENT: ${{ github.event.inputs.user_agent || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }}
 
     steps:
       - name: Checkout repository
@@ -48,13 +80,13 @@ jobs:
 
       - name: Build Linux packages
         run: |
-          pake https://app.v2.gather.town/app \
-            --name "GatherDesktop" \
-            --width 1280 \
-            --height 800 \
-            --user-agent "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+          pake "$APP_URL" \
+            --name "$PACKAGE_NAME" \
+            --width "$WINDOW_WIDTH" \
+            --height "$WINDOW_HEIGHT" \
+            --user-agent "$USER_AGENT" \
             --inject inject.js \
-            --targets deb,appimage
+            --targets "$TARGETS"
 
       - name: Organize artifacts
         shell: bash
@@ -66,7 +98,7 @@ jobs:
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: gather-desktop-linux
+          name: ${{ env.PACKAGE_NAME }}-linux
           path: dist/*
           if-no-files-found: error
 

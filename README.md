@@ -1,16 +1,21 @@
-# Gather Desktop
+# Web To App Builder
 
-Wrapper de escritorio para Gather Town usando Pake/Tauri.
+Plantilla para convertir una aplicacion web en paquetes Linux de escritorio usando Pake/Tauri y GitHub Actions.
 
-URL empaquetada:
+La primera aplicacion configurada por defecto es:
 
 ```text
-https://app.v2.gather.town/app
+https://web.whatsapp.com/
 ```
 
-La estrategia final es compilar en GitHub Actions sobre Ubuntu, no en CachyOS/Arch localmente. Esto evita que el AppImage empaquete librerias rolling-release de Arch, que fueron la causa probable de los crashes de `WebKitWebProcess`, GStreamer y PipeWire.
+Artefactos generados:
 
-## Archivos Del Proyecto
+```text
+.AppImage
+.deb
+```
+
+## Archivos
 
 ```text
 inject.js
@@ -18,117 +23,104 @@ inject.js
 README.md
 ```
 
-## Por Que Usar GitHub CI
+## Como Funciona
 
-El AppImage construido localmente en CachyOS empaqueta librerias desde `/usr/lib`, incluyendo WebKitGTK, GStreamer y PipeWire del sistema rolling-release. Esa mezcla produjo crashes al cargar Gather.
+El workflow de GitHub Actions compila la app en `ubuntu-22.04` usando `pake-cli`.
 
-GitHub Actions construye el AppImage en `ubuntu-22.04`, con un stack mas estable y consistente para AppImage:
-
-```text
-Ubuntu 22.04 + Pake CLI + Tauri bundler + linuxdeploy
-```
-
-Nota importante para CachyOS/Arch: durante las pruebas, el AppImage generado localmente y el AppImage generado por GitHub CI fallaron dentro del proceso embebido `WebKitWebProcess`. Esto indica una incompatibilidad práctica entre Gather Town, WebRTC y WebKitGTK en este entorno. El workflow conserva AppImage para otras distribuciones, pero no se considera soportado en CachyOS.
-
-## Workflow De GitHub Actions
-
-El workflow ya esta en:
+Puedes construir cualquier portal web cambiando los inputs manuales del workflow:
 
 ```text
-.github/workflows/build.yml
+app_url
+package_name
+width
+height
+targets
+user_agent
 ```
 
-Genera dos artefactos Linux:
+## Build Manual Desde GitHub Actions
+
+1. Sube este repositorio a GitHub.
+
+2. Ve a:
 
 ```text
-gatherdesktop.AppImage
-gatherdesktop.deb
+Repository -> Actions -> Build Web App Desktop Linux -> Run workflow
 ```
 
-Se ejecuta en estos casos:
+3. Completa los campos. Para WhatsApp Web usa:
 
 ```text
-push a main/master
-tag v*
-workflow_dispatch manual
+app_url: https://web.whatsapp.com/
+package_name: WhatsAppDesktop
+width: 1280
+height: 800
+targets: deb,appimage
+user_agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
 ```
 
-Si haces push de un tag como `v1.0.0`, tambien crea un GitHub Release con los artefactos adjuntos.
+4. Descarga los artefactos desde:
 
-## Como Lanzar El Build En GitHub
-
-1. Crea un repositorio en GitHub.
-
-2. Inicializa Git si todavia no lo hiciste:
-
-```bash
-git init
-git add .
-git commit -m "feat: build gather desktop linux packages with pake"
+```text
+Repository -> Actions -> build run -> Artifacts
 ```
 
-3. Conecta el remoto:
+## Build Por Tag / Release
 
-```bash
-git remote add origin git@github.com:TU_USUARIO/TU_REPO.git
-```
-
-4. Sube la rama principal:
-
-```bash
-git branch -M main
-git push -u origin main
-```
-
-5. Para crear una release con `.deb` y `.AppImage`:
+Si haces push de un tag `v*`, el workflow crea una GitHub Release con los artefactos adjuntos.
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-6. Ve a GitHub:
-
-```text
-Repository -> Actions -> Build Gather Desktop Linux
-```
-
-O si usaste tag:
+Luego descarga desde:
 
 ```text
 Repository -> Releases -> v1.0.0
 ```
 
-## Como Probar El AppImage
-
-Descarga `gatherdesktop.AppImage` desde GitHub Actions o Releases.
-
-Luego:
+## Primer Push A GitHub
 
 ```bash
-chmod +x gatherdesktop.AppImage
-./gatherdesktop.AppImage
+git init
+git add .
+git commit -m "feat: add generic web to app builder"
+git branch -M main
+git remote add origin git@github.com:TU_USUARIO/TU_REPO.git
+git push -u origin main
 ```
 
-Si usas CachyOS/Arch y aparece un crash de `WebKitWebProcess`, no hay un workaround estable dentro de Pake/Tauri. Para Gather Town en CachyOS, usa la version web en Chromium/Firefox o considera una implementacion Electron basada en Chromium.
-
-## Como Usar El DEB
-
-El `.deb` es para Debian/Ubuntu:
+## Probar AppImage
 
 ```bash
-sudo apt install ./gatherdesktop.deb
+chmod +x WhatsAppDesktop*.AppImage
+./WhatsAppDesktop*.AppImage
 ```
 
-No se recomienda instalar el `.deb` en CachyOS/Arch.
+El nombre exacto del archivo puede variar segun Pake. Si no coincide, lista los artefactos:
+
+```bash
+ls -lah *.AppImage
+```
+
+## Instalar DEB
+
+En Debian/Ubuntu:
+
+```bash
+sudo apt install ./WhatsAppDesktop*.deb
+```
+
+No se recomienda instalar `.deb` directamente en Arch/CachyOS.
 
 ## Build Local Opcional
 
-Solo para pruebas locales, puedes compilar con:
+Para construir localmente WhatsApp Web:
 
 ```bash
-npx pake-cli https://app.v2.gather.town/app \
-  --name "GatherDesktop" \
+npx pake-cli https://web.whatsapp.com/ \
+  --name "WhatsAppDesktop" \
   --width 1280 \
   --height 800 \
   --user-agent "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
@@ -136,4 +128,6 @@ npx pake-cli https://app.v2.gather.town/app \
   --targets deb,appimage
 ```
 
-En CachyOS, el AppImage local puede fallar. Para CachyOS, prueba primero el AppImage generado por GitHub CI.
+## Notas
+
+Pake usa WebKitGTK en Linux. Algunas aplicaciones web con WebRTC avanzado pueden ser inestables en WebKitGTK. Para apps muy dependientes de Chromium, Electron puede ser una alternativa mas compatible.
