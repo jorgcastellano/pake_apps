@@ -28,7 +28,7 @@ GitHub Actions construye el AppImage en `ubuntu-22.04`, con un stack mas estable
 Ubuntu 22.04 + Pake CLI + Tauri bundler + linuxdeploy
 ```
 
-Despues de compilar, el workflow post-procesa el AppImage para envolver su `AppRun` interno con mitigaciones de WebKitGTK. No tienes que pasar variables manualmente al ejecutar el AppImage.
+Nota importante para CachyOS/Arch: durante las pruebas, el AppImage generado localmente y el AppImage generado por GitHub CI fallaron dentro del proceso embebido `WebKitWebProcess`. Esto indica una incompatibilidad práctica entre Gather Town, WebRTC y WebKitGTK en este entorno. El workflow conserva AppImage para otras distribuciones, pero no se considera soportado en CachyOS.
 
 ## Workflow De GitHub Actions
 
@@ -99,7 +99,7 @@ O si usaste tag:
 Repository -> Releases -> v1.0.0
 ```
 
-## Como Probar El AppImage En CachyOS
+## Como Probar El AppImage
 
 Descarga `gatherdesktop.AppImage` desde GitHub Actions o Releases.
 
@@ -109,6 +109,8 @@ Luego:
 chmod +x gatherdesktop.AppImage
 ./gatherdesktop.AppImage
 ```
+
+Si usas CachyOS/Arch y aparece un crash de `WebKitWebProcess`, no hay un workaround estable dentro de Pake/Tauri. Para Gather Town en CachyOS, usa la version web en Chromium/Firefox o considera una implementacion Electron basada en Chromium.
 
 ## Como Usar El DEB
 
