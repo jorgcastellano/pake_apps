@@ -1,0 +1,4 @@
+dist/
+*.AppImage
+*.deb
+node_modules/
